@@ -1,4 +1,9 @@
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
+
+const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.STORAGE_REST_API_URL || process.env.STORAGE_URL;
+const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.STORAGE_REST_API_TOKEN || process.env.STORAGE_TOKEN;
+
+const kvClient = (redisUrl && redisToken) ? createClient({ url: redisUrl, token: redisToken }) : null;
 
 const POST_TTL_SEC = 24 * 60 * 60; // 24 hours in seconds
 
@@ -27,13 +32,13 @@ export async function createPost({ id, name, url, category }) {
     expiresAt: now + (POST_TTL_SEC * 1000), // Only used locally
   };
 
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (kvClient) {
     // Save to Vercel KV with an expiration mapped to the ID
-    await kv.hset(`post:${id}`, post);
+    await kvClient.hset(`post:${id}`, post);
     // Add to sorted set to get ordered lists later (score = createdAt)
-    await kv.zadd('posts:feed', { score: now, member: id });
+    await kvClient.zadd('posts:feed', { score: now, member: id });
     // Tell Redis to forget the hash automatically after 24h
-    await kv.expire(`post:${id}`, POST_TTL_SEC);
+    await kvClient.expire(`post:${id}`, POST_TTL_SEC);
   } else {
     // Local memory fallback
     cleanupLocal();
@@ -44,13 +49,13 @@ export async function createPost({ id, name, url, category }) {
 }
 
 export async function getAllPosts() {
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (kvClient) {
     // Retrieve all active post IDs from sorted set, ordered descending
     const postIds = await kv.zrange('posts:feed', 0, -1, { rev: true });
     if (!postIds || postIds.length === 0) return [];
     
     // Fetch hashes for the IDs simultaneously
-    const pipeline = kv.pipeline();
+    const pipeline = kvClient.pipeline();
     postIds.forEach(id => pipeline.hgetall(`post:${id}`));
     const results = await pipeline.exec();
     
@@ -61,7 +66,7 @@ export async function getAllPosts() {
     if (results.length !== validPosts.length) {
       const expiredIds = postIds.filter((_, idx) => results[idx] === null);
       if (expiredIds.length > 0) {
-        await kv.zrem('posts:feed', ...expiredIds);
+        await kvClient.zrem('posts:feed', ...expiredIds);
       }
     }
     
@@ -79,7 +84,7 @@ export async function getAllPosts() {
 }
 
 export async function getPost(id) {
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (kvClient) {
     const post = await kv.hgetall(`post:${id}`);
     return post || null;
   } else {
@@ -90,7 +95,7 @@ export async function getPost(id) {
 }
 
 export async function likePost(id, visitorId) {
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (kvClient) {
     const post = await kv.hgetall(`post:${id}`);
     if (!post) return null; // Post might have expired
 
@@ -106,7 +111,7 @@ export async function likePost(id, visitorId) {
     post.likedBy.push(visitorId);
     
     // Save state stringified back
-    await kv.hset(`post:${id}`, { likes: post.likes, likedBy: post.likedBy });
+    await kvClient.hset(`post:${id}`, { likes: post.likes, likedBy: post.likedBy });
     
     return post;
   } else {
@@ -125,9 +130,9 @@ export async function likePost(id, visitorId) {
 }
 
 export async function deletePost(id) {
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
-    await kv.del(`post:${id}`);
-    await kv.zrem('posts:feed', id);
+  if (kvClient) {
+    await kvClient.del(`post:${id}`);
+    await kvClient.zrem('posts:feed', id);
   } else {
     localPosts.delete(id);
   }
