@@ -1,13 +1,28 @@
-import { createClient } from '@vercel/kv';
+import { createClient } from 'redis';
 
-const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.STORAGE_REST_API_URL || process.env.STORAGE_URL;
-const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.STORAGE_REST_API_TOKEN || process.env.STORAGE_TOKEN;
+let redisInstance = null;
+async function getRedis() {
+  if (!process.env.KV_REDIS_URL) return null;
+  
+  if (!redisInstance) {
+    redisInstance = createClient({ url: process.env.KV_REDIS_URL });
+    redisInstance.on('error', (err) => console.error('Redis Client Error', err));
+  }
 
-const kvClient = (redisUrl && redisToken) ? createClient({ url: redisUrl, token: redisToken }) : null;
+  if (!redisInstance.isOpen) {
+    try {
+      await redisInstance.connect();
+    } catch (e) {
+      console.error("Failed to connect to Redis", e);
+      return null;
+    }
+  }
+  return redisInstance;
+}
 
 const POST_TTL_SEC = 24 * 60 * 60; // 24 hours in seconds
 
-// In-memory fallback for local development without KV
+// In-memory fallback for local development without Redis
 const localPosts = new Map();
 
 function cleanupLocal() {
@@ -32,13 +47,26 @@ export async function createPost({ id, name, url, category }) {
     expiresAt: now + (POST_TTL_SEC * 1000), // Only used locally
   };
 
-  if (kvClient) {
-    // Save to Vercel KV with an expiration mapped to the ID
-    await kvClient.hset(`post:${id}`, post);
+  const db = await getRedis();
+  if (db) {
+    // Save to Redis (serialize arrays and numbers as strings for Hashes in node-redis)
+    const postPayload = {
+      id: post.id,
+      name: post.name,
+      url: post.url,
+      category: post.category,
+      likes: post.likes.toString(),
+      likedBy: JSON.stringify(post.likedBy),
+      createdAt: post.createdAt.toString(),
+      expiresAt: post.expiresAt.toString(),
+    };
+    
+    await db.hSet(`post:${id}`, postPayload);
     // Add to sorted set to get ordered lists later (score = createdAt)
-    await kvClient.zadd('posts:feed', { score: now, member: id });
+    // En redis v4 es => zAdd('key', { score: X, value: 'algo' })
+    await db.zAdd('posts:feed', [{ score: now, value: id }]);
     // Tell Redis to forget the hash automatically after 24h
-    await kvClient.expire(`post:${id}`, POST_TTL_SEC);
+    await db.expire(`post:${id}`, POST_TTL_SEC);
   } else {
     // Local memory fallback
     cleanupLocal();
@@ -48,25 +76,39 @@ export async function createPost({ id, name, url, category }) {
   return post;
 }
 
+// Helper para desserializar posts que vienen de Redis
+function parsePost(redisPost) {
+  if (!redisPost || Object.keys(redisPost).length === 0) return null;
+  return {
+    ...redisPost,
+    likes: parseInt(redisPost.likes || '0', 10),
+    likedBy: redisPost.likedBy ? JSON.parse(redisPost.likedBy) : [],
+    createdAt: parseInt(redisPost.createdAt, 10),
+    expiresAt: parseInt(redisPost.expiresAt, 10),
+  };
+}
+
 export async function getAllPosts() {
-  if (kvClient) {
-    // Retrieve all active post IDs from sorted set, ordered descending
-    const postIds = await kv.zrange('posts:feed', 0, -1, { rev: true });
+  const db = await getRedis();
+  if (db) {
+    // Formato de node-redis: zRange('posts:feed', '+inf', '-inf', { BY: 'score', REV: true }) 
+    // pero para simple indices: zRange('posts:feed', 0, -1, { REV: true })
+    const postIds = await db.zRange('posts:feed', 0, -1, { REV: true });
+    
     if (!postIds || postIds.length === 0) return [];
     
-    // Fetch hashes for the IDs simultaneously
-    const pipeline = kvClient.pipeline();
-    postIds.forEach(id => pipeline.hgetall(`post:${id}`));
-    const results = await pipeline.exec();
+    // Fetch hashes for the IDs simultaneously usando promise.all
+    const promises = postIds.map(id => db.hGetAll(`post:${id}`));
+    const results = await Promise.all(promises);
     
-    // Filter out nulls (posts that have naturally expired via TTL)
-    const validPosts = results.filter(p => p !== null);
+    // Parse objects and Filter out empty ones (posts that have naturally expired via TTL)
+    const validPosts = results.map(p => parsePost(p)).filter(p => p !== null);
     
     // Maintain the active sorted set by removing expired ones (cleanup phase)
     if (results.length !== validPosts.length) {
-      const expiredIds = postIds.filter((_, idx) => results[idx] === null);
+      const expiredIds = postIds.filter((_, idx) => !results[idx] || Object.keys(results[idx]).length === 0);
       if (expiredIds.length > 0) {
-        await kvClient.zrem('posts:feed', ...expiredIds);
+        await db.zRem('posts:feed', expiredIds);
       }
     }
     
@@ -84,9 +126,10 @@ export async function getAllPosts() {
 }
 
 export async function getPost(id) {
-  if (kvClient) {
-    const post = await kv.hgetall(`post:${id}`);
-    return post || null;
+  const db = await getRedis();
+  if (db) {
+    const post = await db.hGetAll(`post:${id}`);
+    return parsePost(post);
   } else {
     cleanupLocal();
     const entry = localPosts.get(id);
@@ -95,25 +138,30 @@ export async function getPost(id) {
 }
 
 export async function likePost(id, visitorId) {
-  if (kvClient) {
-    const post = await kv.hgetall(`post:${id}`);
-    if (!post) return null; // Post might have expired
+  const db = await getRedis();
+  if (db) {
+    const post = await db.hGetAll(`post:${id}`);
+    const parsed = parsePost(post);
+    if (!parsed) return null; // Post might have expired
 
-    if (!post.likedBy) post.likedBy = [];
+    if (!parsed.likedBy) parsed.likedBy = [];
 
     // Check for duplicate like
-    if (post.likedBy.includes(visitorId)) {
-      return post;
+    if (parsed.likedBy.includes(visitorId)) {
+      return parsed;
     }
 
     // Add like
-    post.likes += 1;
-    post.likedBy.push(visitorId);
+    parsed.likes += 1;
+    parsed.likedBy.push(visitorId);
     
     // Save state stringified back
-    await kvClient.hset(`post:${id}`, { likes: post.likes, likedBy: post.likedBy });
+    await db.hSet(`post:${id}`, { 
+      likes: parsed.likes.toString(), 
+      likedBy: JSON.stringify(parsed.likedBy) 
+    });
     
-    return post;
+    return parsed;
   } else {
     cleanupLocal();
     const entry = localPosts.get(id);
@@ -130,9 +178,10 @@ export async function likePost(id, visitorId) {
 }
 
 export async function deletePost(id) {
-  if (kvClient) {
-    await kvClient.del(`post:${id}`);
-    await kvClient.zrem('posts:feed', id);
+  const db = await getRedis();
+  if (db) {
+    await db.del(`post:${id}`);
+    await db.zRem('posts:feed', id);
   } else {
     localPosts.delete(id);
   }
