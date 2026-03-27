@@ -367,14 +367,6 @@ export default function Feed() {
                   </div>
 
                   <div className="post-card__actions">
-                    <button
-                      className={`post-card__like-btn ${isLiked ? 'post-card__like-btn--liked' : ''}`}
-                      onClick={() => handleLike(post.id)}
-                      disabled={isLiked}
-                    >
-                      {isLiked ? '❤️' : '🤍'} {post.likes}
-                    </button>
-
                     {isVisited && (
                       <span className="post-card__visited-tag">
                         ✅ Visitado
