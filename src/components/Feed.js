@@ -166,13 +166,18 @@ export default function Feed() {
         {/* Publish Section */}
         <section className="publish">
           {!showForm ? (
-            <button
-              className="publish__toggle"
-              onClick={() => setShowForm(true)}
-              id="btn-new-post"
-            >
-              <span>✨</span> Compartir mi post de LinkedIn
-            </button>
+            <div style={{ textAlign: 'center' }}>
+              <button
+                className="publish__toggle"
+                onClick={() => setShowForm(true)}
+                id="btn-new-post"
+              >
+                <span>✨</span> Compartir mi post de LinkedIn
+              </button>
+              <p style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                ℹ️ Aclaración: La base de datos se limpia cada 24 horas y los posts son borrados.
+              </p>
+            </div>
           ) : (
             <form className="publish__form" onSubmit={handleSubmit}>
               <h2 className="publish__form-title">
@@ -245,7 +250,7 @@ export default function Feed() {
                   disabled={submitting}
                   id="btn-submit-post"
                 >
-                  {submitting ? '⏳ Publicando...' : '🚀 Publicar'}
+                  {submitting ? '⏳ Publicando...' : '🚀 Publicar por 24 hs'}
                 </button>
                 <button
                   type="button"

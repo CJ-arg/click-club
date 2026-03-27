@@ -32,10 +32,10 @@ export default function HomePage() {
           <h1 className="gate__title">Acceso Restringido</h1>
           <p className="gate__subtitle">
             Esta comunidad es privada.<br />
-            Necesitas escanear el código QR de invitación para poder entrar.
+            Necesitas el link de acceso para poder entrar a ver y sumar posts.
           </p>
           <p className="gate__hint">
-            <span>📱</span> Pedile el QR a quien te invitó
+            <span>🔗</span> Pedile el link de acceso a quien te invitó
           </p>
         </div>
       </div>
