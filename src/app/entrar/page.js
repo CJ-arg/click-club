@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function EntrarPage() {
+function InviteHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('loading'); // loading | success | error
@@ -83,5 +83,21 @@ export default function EntrarPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EntrarPage() {
+  return (
+    <Suspense fallback={
+      <div className="invite">
+        <div className="invite__card">
+          <div className="invite__emoji">🔑</div>
+          <h1 className="invite__title">Verificando Invitación...</h1>
+          <p className="invite__subtitle">Un momento por favor</p>
+        </div>
+      </div>
+    }>
+      <InviteHandler />
+    </Suspense>
   );
 }
