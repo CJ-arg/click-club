@@ -175,7 +175,8 @@ export default function Feed() {
                 <span>✨</span> Compartir mi post de LinkedIn
               </button>
               <p style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                ℹ️ Aclaración: La base de datos se limpia cada 24 horas y los posts son borrados.
+                ℹ️ Aclaración: La base de datos se limpia cada 24 horas y los posts son borrados
+                Vuelve mañana para ver nuevos posts.
               </p>
             </div>
           ) : (
