@@ -16,6 +16,19 @@ async function getRedis() {
       console.error("Failed to connect to Redis", e);
       return null;
     }
+  } else {
+    // Ping to ensure the socket isn't half-dead
+    try {
+      await redisInstance.ping();
+    } catch(e) {
+      console.error("Redis ping failed, reconnecting...", e);
+      try {
+        await redisInstance.disconnect();
+        await redisInstance.connect();
+      } catch(reconnErr) {
+        return null; // fallback
+      }
+    }
   }
   return redisInstance;
 }
@@ -98,19 +111,11 @@ export async function getAllPosts() {
     if (!postIds || postIds.length === 0) return [];
     
     // Fetch hashes for the IDs simultaneously usando promise.all
-    const promises = postIds.map(id => db.hGetAll(`post:${id}`));
+    const promises = postIds.map(id => db.hGetAll(`post:${id}`).catch(() => null));
     const results = await Promise.all(promises);
     
-    // Parse objects and Filter out empty ones (posts that have naturally expired via TTL)
+    // Parse objects and Filter out empty ones (posts that have naturally expired via TTL or errored)
     const validPosts = results.map(p => parsePost(p)).filter(p => p !== null);
-    
-    // Maintain the active sorted set by removing expired ones (cleanup phase)
-    if (results.length !== validPosts.length) {
-      const expiredIds = postIds.filter((_, idx) => !results[idx] || Object.keys(results[idx]).length === 0);
-      if (expiredIds.length > 0) {
-        await db.zRem('posts:feed', expiredIds);
-      }
-    }
     
     return validPosts;
   } else {
