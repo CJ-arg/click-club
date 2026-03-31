@@ -4,6 +4,7 @@
    DESIGN TOKENS
    ========================================== */
 :root {
+  color-scheme: dark;
   /* Colors - High-End Minimalist (Zinc Base) */
   --bg-primary: #09090b;
   --bg-secondary: #0f0f12;
@@ -410,8 +411,8 @@ input, select, textarea {
 }
 
 .publish__select option {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  background-color: #0f0f12; 
+  color: #fafafa;
 }
 
 .publish__select:focus {
