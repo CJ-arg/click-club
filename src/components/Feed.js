@@ -18,8 +18,8 @@ function timeAgo(timestamp) {
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `hace ${minutes}m`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  return 'hace +24h';
+  if (hours < 72) return `hace ${hours}h`;
+  return 'hace +3d';
 }
 
 function getInitials(name) {
@@ -175,8 +175,8 @@ export default function Feed() {
                 <span>✨</span> Compartir mi post de LinkedIn
               </button>
               <p style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                ℹ️ Aclaración: La base de datos se limpia cada 24 horas y los posts son borrados
-                Vuelve mañana para ver o publicar nuevos posts.
+                ℹ️ Aclaración: La base de datos se limpia cada 3 días y los posts son borrados.
+                Vuelve en 72 horas para ver o publicar nuevos posts.
               </p>
             </div>
           ) : (
@@ -251,7 +251,7 @@ export default function Feed() {
                   disabled={submitting}
                   id="btn-submit-post"
                 >
-                  {submitting ? '⏳ Publicando...' : '🚀 Publicar por 24 hs'}
+                  {submitting ? '⏳ Publicando...' : '🚀 Publicar por 3 días'}
                 </button>
                 <button
                   type="button"

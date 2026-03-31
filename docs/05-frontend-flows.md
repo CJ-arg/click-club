@@ -55,6 +55,6 @@ Comportamiento:
 
 ## Notas de UX
 
-- El feed informa que los posts caducan cada 24h.
+- El feed informa que los posts caducan cada 72h (3 dias).
 - El filtrado por categoria ocurre en cliente sobre los posts cargados.
 - No existe estado global externo (Redux/Zustand); todo vive en estado local del componente.
