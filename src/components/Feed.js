@@ -335,50 +335,49 @@ export default function Feed() {
 
                   <div className="post-card__top">
                     <div className="post-card__identity">
-                      <div
-                        className="post-card__avatar"
-                        style={{ background: catInfo.color }}
-                      >
-                        {getInitials(post.name)}
+                      <div className="post-card__avatar" style={{ backgroundColor: catInfo.color }}>
+                        {post.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="post-card__name">{post.name}</div>
-                        <span
-                          className="post-card__category"
-                          style={{
-                            color: catInfo.color,
-                            background: `${catInfo.color}18`,
-                            border: `1px solid ${catInfo.color}30`,
-                          }}
-                        >
+                        <h3 className="post-card__name">{post.name}</h3>
+                        <span className="post-card__category" style={{ color: catInfo.color, backgroundColor: `${catInfo.color}15` }}>
                           {catInfo.label}
                         </span>
                       </div>
                     </div>
-                    <span className="post-card__time">
-                      🕐 {timeAgo(post.createdAt)}
-                    </span>
+
+                    <div className="post-card__link-row">
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="post-card__link"
+                        onClick={() => handleVisit(post.id)}
+                      >
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {post.url}
+                        </span>
+                        <span>↗</span>
+                      </a>
+                    </div>
                   </div>
 
-                  <div className="post-card__link-row">
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="post-card__link"
-                      onClick={() => handleVisit(post.id)}
-                    >
-                      🔗 Abrir en LinkedIn →
-                    </a>
-                  </div>
-
-                  <div className="post-card__actions">
+                  <div className="post-card__actions" style={{ marginTop: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <div className="post-card__time">
+                        ⏱ {timeAgo(post.createdAt)}
+                      </div>
+                    </div>
                     {isVisited && (
                       <span className="post-card__visited-tag">
                         ✅ Visitado
                       </span>
                     )}
                   </div>
+                    
+                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500, margin: '10px 0 0 0' }}>
+                        <span style={{color: 'var(--text-primary)'}}>💡 Tip:</span> Entrá, dejá tu Like y un buen comentario tu interacción te ayuda a vos y a tu colega.
+                      </p>
                 </article>
               );
             })
