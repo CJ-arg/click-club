@@ -32,9 +32,9 @@ Operaciones principales:
 - Like: `hGetAll` + `hSet`
 - Borrar: `del` + `zRem`
 
-## Expiracion de posts (24 horas)
+## Expiracion de posts (72 horas)
 
-- TTL definido por `POST_TTL_SEC = 24 * 60 * 60`.
+- TTL definido por `POST_TTL_SEC = 72 * 60 * 60`.
 - En Redis se aplica con `expire(post:{id}, POST_TTL_SEC)`.
 - En fallback local se limpia con `cleanupLocal()` comparando `expiresAt`.
 

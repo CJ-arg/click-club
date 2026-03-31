@@ -5,7 +5,7 @@
 Click Club es una comunidad privada para compartir publicaciones de LinkedIn entre perfiles tecnicos. La app permite:
 
 - ingresar con un codigo de invitacion;
-- publicar un enlace de LinkedIn por 24 horas;
+- publicar un enlace de LinkedIn por 3 dias (72 horas);
 - visualizar publicaciones activas del grupo.
 
 ## Stack tecnico
@@ -38,5 +38,5 @@ Click Club es una comunidad privada para compartir publicaciones de LinkedIn ent
 
 - **Invite code**: codigo para habilitar acceso inicial a la app.
 - **Visitor ID**: identificador local del visitante para evitar likes duplicados.
-- **Post TTL**: tiempo de vida de un post (24 horas).
+- **Post TTL**: tiempo de vida de un post (72 horas).
 - **Feed index**: sorted set en Redis que ordena posts por fecha de creacion.

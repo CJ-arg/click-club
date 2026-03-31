@@ -5,6 +5,8 @@
  */
 
 export const INVITE_CODE = process.env.INVITE_CODE || 'CLICKCLUB2026';
+// 3 days in seconds
+export const POST_TTL_SEC = 72 * 60 * 60;
 
 export const CATEGORIES = [
   { value: 'fullstack', label: 'Full Stack Web', color: '#6C5CE7' },

@@ -40,7 +40,7 @@ flowchart TD
 - API y UI unificadas para simplicidad operativa.
 - Modelo de datos intencionalmente pequeno (sin ORM ni migraciones).
 - Durabilidad opcional: con Redis los datos sobreviven reinicios; sin Redis no.
-- Caducidad automatica de posts cada 24 horas.
+- Caducidad automatica de posts cada 72 horas (3 dias).
 
 ## Limitaciones conocidas
 

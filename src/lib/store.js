@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { POST_TTL_SEC } from '@/lib/config';
 
 let redisInstance = null;
 async function getRedis() {
@@ -32,8 +33,6 @@ async function getRedis() {
   }
   return redisInstance;
 }
-
-const POST_TTL_SEC = 24 * 60 * 60; // 24 hours in seconds
 
 // In-memory fallback for local development without Redis
 const localPosts = new Map();
@@ -78,7 +77,7 @@ export async function createPost({ id, name, url, category }) {
     // Add to sorted set to get ordered lists later (score = createdAt)
     // En redis v4 es => zAdd('key', { score: X, value: 'algo' })
     await db.zAdd('posts:feed', [{ score: now, value: id }]);
-    // Tell Redis to forget the hash automatically after 24h
+    // Tell Redis to forget the hash automatically after 72h (3 days)
     await db.expire(`post:${id}`, POST_TTL_SEC);
   } else {
     // Local memory fallback
