@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Click Club
 
-## Getting Started
+Comunidad privada para compartir publicaciones de LinkedIn entre perfiles tecnicos.
 
-First, run the development server:
+## Inicio rapido
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Instala dependencias:
+   - `npm install`
+2. Configura variables de entorno (recomendado en `.env.local`):
+   - `INVITE_CODE=...`
+   - `KV_REDIS_URL=redis://...` (opcional, recomendado para persistencia real)
+3. Levanta el proyecto:
+   - `npm run dev`
+4. Abre:
+   - [http://localhost:3000](http://localhost:3000)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- `npm run dev` - desarrollo.
+- `npm run build` - build de produccion.
+- `npm run start` - correr build.
+- `npm run test` - tests unitarios.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Arquitectura en una linea
 
-## Learn More
+App Next.js monolitica (UI + API routes) con persistencia en Redis y fallback en memoria local de proceso.
 
-To learn more about Next.js, take a look at the following resources:
+## Documentacion completa
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Vision general](docs/01-overview.md)
+- [Arquitectura](docs/02-architecture.md)
+- [Persistencia](docs/03-persistence.md)
+- [API](docs/04-api.md)
+- [Flujos frontend](docs/05-frontend-flows.md)
+- [Workflow de desarrollo](docs/06-dev-workflow.md)
+- [Contexto para agentes IA](docs/07-ai-context.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Archivos clave del codigo
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/components/Feed.js` - UI principal.
+- `src/app/api/posts/route.js` - listado y creacion de posts.
+- `src/app/api/posts/[id]/like/route.js` - likes.
+- `src/app/api/verify/route.js` - verificacion de invitacion.
+- `src/lib/store.js` - persistencia (Redis/fallback).
+- `src/lib/config.js` - constantes y validaciones de dominio.
