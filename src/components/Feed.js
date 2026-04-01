@@ -31,6 +31,9 @@ function getInitials(name) {
     .slice(0, 2);
 }
 
+const LS_AUTHOR = 'clickclub_author';
+const LS_CATEGORY = 'clickclub_category';
+
 export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -62,6 +65,16 @@ export default function Feed() {
       setLikedPosts(new Set(liked));
     } catch {
       // ignore
+    }
+  }, []);
+
+  // Hydrate author name and category from localStorage
+  useEffect(() => {
+    const savedName = localStorage.getItem(LS_AUTHOR) || '';
+    const savedCategory = localStorage.getItem(LS_CATEGORY) || '';
+    if (savedName) setName(savedName);
+    if (savedCategory && CATEGORIES.some(c => c.value === savedCategory)) {
+      setCategory(savedCategory);
     }
   }, []);
 
@@ -103,9 +116,9 @@ export default function Feed() {
       }
 
       // Success
-      setName('');
+      localStorage.setItem(LS_AUTHOR, name);
+      localStorage.setItem(LS_CATEGORY, category);
       setUrl('');
-      setCategory('');
       setShowForm(false);
       fetchPosts();
     } catch {
