@@ -14,17 +14,28 @@ export const CATEGORIES = [
   { value: 'data', label: 'Data Analytics', color: '#0984E3' },
 ];
 
-export function isValidLinkedInUrl(url) {
+export function isLinkedInPost(url) {
   try {
     const parsed = new URL(url);
+    if (parsed.hostname !== 'www.linkedin.com' && parsed.hostname !== 'linkedin.com') return false;
+
     return (
-      parsed.protocol === 'https:' &&
-      (parsed.hostname === 'www.linkedin.com' || parsed.hostname === 'linkedin.com') &&
-      (parsed.pathname.startsWith('/in/') ||
-        parsed.pathname.startsWith('/posts/') ||
-        parsed.pathname.startsWith('/feed/') ||
-        parsed.pathname.startsWith('/pulse/'))
+      parsed.pathname.startsWith('/posts/') ||
+      parsed.pathname.startsWith('/feed/update/') ||
+      parsed.pathname.startsWith('/pulse/')
     );
+  } catch {
+    return false;
+  }
+}
+
+export function isLinkedInProfile(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'www.linkedin.com' && parsed.hostname !== 'linkedin.com') return false;
+
+    // A valid profile URL looks like https://www.linkedin.com/in/username/
+    return parsed.pathname.startsWith('/in/') && parsed.pathname.length > 4;
   } catch {
     return false;
   }

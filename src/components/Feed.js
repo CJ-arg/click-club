@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { isLinkedInPost } from '@/lib/config';
 
 const CATEGORIES = [
   { value: 'fullstack', label: 'Full Stack Web', color: '#6C5CE7' },
@@ -34,7 +35,7 @@ function getInitials(name) {
 const LS_AUTHOR = 'clickclub_author';
 const LS_CATEGORY = 'clickclub_category';
 
-export default function Feed() {
+export default function Feed({ switchToDirectory }) {
   const [posts, setPosts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -100,6 +101,12 @@ export default function Feed() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!isLinkedInPost(url)) {
+      setError('Por favor usá un enlace a un Post de LinkedIn válido (linkedin.com/posts/...)');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -166,12 +173,23 @@ export default function Feed() {
     <div className="feed">
       {/* Header */}
       <header className="header">
-        <div className="container header__inner">
-          <div className="header__logo">
-            <div className="header__icon">🔗</div>
-            <span className="header__title">Click Club</span>
+        <div className="container header__inner" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div className="header__logo">
+              <div className="header__icon">🔗</div>
+              <span className="header__title">Click Club</span>
+            </div>
+            <span className="header__badge">🟢 {posts.length} posts activos</span>
           </div>
-          <span className="header__badge">🟢 {posts.length} posts activos</span>
+
+          <div className="main-tabs">
+            <button className="tab-btn active">
+              📰 Feed de posts
+            </button>
+            <button className="tab-btn" onClick={switchToDirectory}>
+              📂 Perfiles para conectar
+            </button>
+          </div>
         </div>
       </header>
 

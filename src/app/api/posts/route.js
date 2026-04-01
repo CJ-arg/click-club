@@ -1,5 +1,5 @@
 import { getAllPosts, createPost } from '@/lib/store';
-import { isValidLinkedInUrl, CATEGORIES } from '@/lib/config';
+import { isLinkedInPost, CATEGORIES } from '@/lib/config';
 
 export async function GET() {
   const posts = await getAllPosts();
@@ -20,7 +20,7 @@ export async function POST(request) {
     }
 
     // Validate LinkedIn URL
-    if (!url || !isValidLinkedInUrl(url)) {
+    if (!url || !isLinkedInPost(url)) {
       return Response.json(
         { error: 'Debe ser un enlace válido de LinkedIn (https://www.linkedin.com/...)' },
         { status: 400 }

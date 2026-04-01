@@ -8,7 +8,8 @@ Comunidad privada para compartir publicaciones de LinkedIn entre perfiles tecnic
    - `npm install`
 2. Configura variables de entorno (recomendado en `.env.local`):
    - `INVITE_CODE=...`
-   - `KV_REDIS_URL=redis://...` (opcional, recomendado para persistencia real)
+   - `KV_REDIS_URL=redis://...` (opcional, recomendado para persistencia temporal)
+   - `POSTGRES_URL=postgres://...` (obligatorio para persistencia del Directorio de Perfiles)
 3. Levanta el proyecto:
    - `npm run dev`
 4. Abre:
@@ -23,7 +24,7 @@ Comunidad privada para compartir publicaciones de LinkedIn entre perfiles tecnic
 
 ## Arquitectura en una linea
 
-App Next.js monolitica (UI + API routes) con persistencia en Redis y fallback en memoria local de proceso.
+App Next.js monolitica (UI + API routes) con persistencia dual: Redis (para el Feed temporal de posts) y PostgreSQL (para el Directorio VIP de Perfiles fijos).
 
 ## Documentacion completa
 
@@ -37,9 +38,12 @@ App Next.js monolitica (UI + API routes) con persistencia en Redis y fallback en
 
 ## Archivos clave del codigo
 
-- `src/components/Feed.js` - UI principal.
-- `src/app/api/posts/route.js` - listado y creacion de posts.
+- `src/components/Feed.js` - UI principal (Posteos Temporales).
+- `src/components/Directory.js` - UI de Perfiles Permanentes.
+- `src/app/api/posts/route.js` - listado y creacion de posts en Redis.
+- `src/app/api/profiles/route.js` - listado y creacion de perfiles en PostgreSQL.
 - `src/app/api/posts/[id]/like/route.js` - likes.
 - `src/app/api/verify/route.js` - verificacion de invitacion.
-- `src/lib/store.js` - persistencia (Redis/fallback).
-- `src/lib/config.js` - constantes y validaciones de dominio.
+- `src/lib/store.js` - persistencia temporal (Redis/fallback).
+- `src/lib/db.js` - persistencia permanente (PostgreSQL).
+- `src/lib/config.js` - constantes y validaciones de dominio estrictas.

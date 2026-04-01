@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Feed from '@/components/Feed';
+import Directory from '@/components/Directory';
 
 export default function HomePage() {
   const [hasAccess, setHasAccess] = useState(null); // null = loading
+  const [currentTab, setCurrentTab] = useState('feed'); // 'feed' | 'directory'
 
   useEffect(() => {
     const pass = localStorage.getItem('clickclub_pass');
@@ -42,6 +44,11 @@ export default function HomePage() {
     );
   }
 
-  // Has access — show the feed
-  return <Feed />;
+  // Has access — show the active tab
+
+  if (currentTab === 'feed') {
+    return <Feed switchToDirectory={() => setCurrentTab('directory')} />;
+  } else {
+    return <Directory switchToFeed={() => setCurrentTab('feed')} />;
+  }
 }
