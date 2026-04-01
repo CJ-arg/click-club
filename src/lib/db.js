@@ -1,7 +1,13 @@
 import { Pool } from 'pg';
 
 // Busca cualquiera de las variables que hayas pegado en el .env
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.CLICK_CLUB_URL;
+// Busca cualquiera de las variables que hayas pegado en el .env o las que Vercel puso con prefijo
+const connectionString = 
+  process.env.POSTGRES_URL || 
+  process.env.DATABASE_URL || 
+  process.env.click_club_POSTGRES_URL || 
+  process.env.click_club_DATABASE_URL ||
+  process.env.CLICK_CLUB_URL;
 
 const pool = new Pool({
   connectionString,

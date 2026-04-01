@@ -31,6 +31,6 @@ export async function POST(request) {
     return Response.json(savedProfile);
   } catch (error) {
     console.error("API Error:", error);
-    return Response.json({ error: 'Error interno del servidor', details: error.message, stack: error.stack }, { status: 500 });
+    return Response.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
